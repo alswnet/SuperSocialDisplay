@@ -3,6 +3,8 @@
 #include "InstagramStats.h"
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
+#include <ArduinoJson.h>
+#include <FacebookApi.h>
 
 
 #include "JsonStreamingParser.h"
@@ -16,13 +18,16 @@ WiFiClientSecure client;
 InstagramStats instaStats(client);
 YoutubeApi api(API_KEY, client);
 
+String FACEBOOK_ACCESS_TOKEN = "EAAMzCQes4NkBAB9kXSrBoMXx4IvN6i4kTEteVcb1ecS5uISZAiUG8DH0oiHUo8VCZBYXBpUSEh4ORPpHSD1a6pDDnFlZA1HkCBoOMZAhcxAIq5fNCLjZBE7wDE4aMrZCoAqqiuUuj0bAXqZClHNBkYoWOc8ml3EFBLyPODMDu1xV8siAP85cNxjRCcZA4qAbZAVMZD";    // not needed for the page fan count
+String FACEBOOK_APP_ID = "900538806624473";
+String FACEBOOK_APP_SECRET = "aacbf4b652ecf4be2290d40430c9f4d5";
 
-unsigned long delayBetweenChecks = 10000; //mean time between api requests
+FacebookApi *apifb;
+
+unsigned long delayBetweenChecks = 20000; //mean time between api requests
 unsigned long whenDueToCheck = 0;
 
-//Inputs
-String userName = "alswnet"; // from their instagram url https://www.instagram.com/brian_lough/
-
+String userName = "alswnet";
 
 void setup() {
 
@@ -47,30 +52,37 @@ void setup() {
   Serial.println("IP address: ");
   IPAddress ip = WiFi.localIP();
   Serial.println(ip);
+
+  apifb = new FacebookApi(client, FACEBOOK_ACCESS_TOKEN, FACEBOOK_APP_ID, FACEBOOK_APP_SECRET);
+
 }
 
 void getInstagramStatsForUser() {
-  Serial.println("Getting instagram user stats for " + userName );
   InstagramUserStats response = instaStats.getUserStats(userName);
-  Serial.println("Response:");
-  Serial.print("Number of followers: ");
+  Serial.print("Instagram: ");
   Serial.println(response.followedByCount);
 }
 
 void getYoutube() {
-  if (api.getChannelStatistics(CHANNEL_ID))
-  {
-    Serial.println("---------Stats---------");
-    Serial.print("Subscriber Count: ");
+  if (api.getChannelStatistics(CHANNEL_ID)) {
+    Serial.print("Youtube: ");
     Serial.println(api.channelStats.subscriberCount);
   }
+}
+
+void getFacebook() {
+  int pageLikes = apifb->getPageFanCount("163069780414846");
+    Serial.print("Facebook: ");
+    Serial.println(pageLikes);
 }
 
 void loop() {
   unsigned long timeNow = millis();
   if ((timeNow > whenDueToCheck))  {
+    Serial.println("---Datos----");
     getInstagramStatsForUser();
     getYoutube();
+    getFacebook();
     whenDueToCheck = timeNow + delayBetweenChecks;
   }
 }

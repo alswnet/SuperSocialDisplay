@@ -83,7 +83,7 @@ void setup() {
 
 boolean getInstagramStatsForUser() {
   InstagramUserStats response = instaStats.getUserStats(userName);
-  if (Sub[Instagram] != response.followedByCount) {
+  if (Sub[Instagram] < response.followedByCount) {
     Sub[Instagram] = response.followedByCount;
     Serial.print("Instagram: ");
     Serial.println(Sub[Instagram]);
@@ -94,7 +94,7 @@ boolean getInstagramStatsForUser() {
 
 boolean getYoutube() {
   if (api.getChannelStatistics(CHANNEL_ID)) {
-    if (Sub[Youtube] != api.channelStats.subscriberCount) {
+    if (Sub[Youtube] < api.channelStats.subscriberCount) {
       Sub[Youtube] = api.channelStats.subscriberCount;
       Serial.print("Youtube: ");
       Serial.println(Sub[Youtube]);
@@ -106,7 +106,7 @@ boolean getYoutube() {
 
 boolean getFacebook() {
   int pageLikes = apifb->getPageFanCount("163069780414846");
-  if (Sub[Facebook] != pageLikes) {
+  if (Sub[Facebook] < pageLikes) {
     Sub[Facebook] = pageLikes;
     Serial.print("Facebook: ");
     Serial.println(Sub[Facebook]);
@@ -148,7 +148,7 @@ void playNote(char note, int duration) {
   for (int i = 0; i < 8; i++) {
     if (names[i] == note) {
       playTone(tones[i], duration);
-      delay(100);
+      delay(50);
     }
   }
 }
@@ -166,8 +166,8 @@ void loop() {
   unsigned long timeNow = millis();
   boolean SiTono = false;
   if ((timeNow > whenDueToCheck))  {
-    SiTono = SiTono || getInstagramStatsForUser();
     SiTono = SiTono || getYoutube();
+    SiTono = SiTono || getInstagramStatsForUser();
     SiTono = SiTono || getFacebook();
     showNumber(10);
     whenDueToCheck = timeNow + delayBetweenChecks;

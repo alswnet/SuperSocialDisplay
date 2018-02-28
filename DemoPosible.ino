@@ -30,6 +30,14 @@ byte segmentClock = 13;
 byte segmentLatch = 12;
 byte segmentData = 16;
 
+#define Facebook 0
+#define Youtube 1
+#define Instagram 2
+
+const int Pin[3] = {15, 4, 0};
+const int Buzzer = 14;
+
+int Sub[3] = {0, 0, 0};
 void setup() {
 
   Serial.begin(115200);
@@ -57,36 +65,48 @@ void setup() {
   pinMode(segmentClock, OUTPUT);
   pinMode(segmentData, OUTPUT);
   pinMode(segmentLatch, OUTPUT);
+  pinMode(Buzzer, OUTPUT);
 
   digitalWrite(segmentClock, LOW);
   digitalWrite(segmentData, LOW);
   digitalWrite(segmentLatch, LOW);
-
+  for (int i = 0; i < 3 ; i++) {
+    pinMode(Pin[i], OUTPUT);
+  }
+  Serial.println("---Datos----");
 }
 
 void getInstagramStatsForUser() {
   InstagramUserStats response = instaStats.getUserStats(userName);
-  Serial.print("Instagram: ");
-  Serial.println(response.followedByCount);
+  if (Sub[Instagram] != response.followedByCount) {
+    Sub[Instagram] = response.followedByCount;
+    Serial.print("Instagram: ");
+    Serial.println(Sub[Instagram]);
+  }
 }
 
 void getYoutube() {
   if (api.getChannelStatistics(CHANNEL_ID)) {
-    Serial.print("Youtube: ");
-    Serial.println(api.channelStats.subscriberCount);
+    if (Sub[Youtube] != api.channelStats.subscriberCount) {
+      Sub[Youtube] = api.channelStats.subscriberCount;
+      Serial.print("Youtube: ");
+      Serial.println(Sub[Youtube]);
+    }
   }
 }
 
 void getFacebook() {
   int pageLikes = apifb->getPageFanCount("163069780414846");
-  Serial.print("Facebook: ");
-  Serial.println(pageLikes);
+  if (Sub[Facebook] != pageLikes) {
+    Sub[Facebook] = pageLikes;
+    Serial.print("Facebook: ");
+    Serial.println(Sub[Facebook]);
+  }
 }
 
 void loop() {
   unsigned long timeNow = millis();
   if ((timeNow > whenDueToCheck))  {
-    Serial.println("---Datos----");
     getInstagramStatsForUser();
     getYoutube();
     getFacebook();
@@ -99,9 +119,6 @@ void loop() {
 void showNumber(float value)
 {
   int number = abs(value); //Remove negative signs and any decimals
-
-  //Serial.print("number: ");
-  //Serial.println(number);
 
   for (byte x = 0 ; x < 2 ; x++)
   {

@@ -34,6 +34,7 @@ byte segmentData = 16;
 #define Youtube 1
 #define Instagram 2
 
+const int Led = 5;
 const int Pin[3] = {15, 4, 0};
 const int Buzzer = 14;
 
@@ -41,6 +42,7 @@ int Sub[3] = {0, 0, 0};
 void setup() {
 
   Serial.begin(115200);
+  pinMode(Led, OUTPUT);
 
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
@@ -52,7 +54,10 @@ void setup() {
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
-    delay(500);
+    digitalWrite(Led, 0);
+    delay(250);
+    digitalWrite(Led, 1);
+    delay(250);
   }
   Serial.println("");
   Serial.println("WiFi connected");
@@ -113,6 +118,10 @@ void loop() {
     showNumber(10);
     whenDueToCheck = timeNow + delayBetweenChecks;
   }
+  digitalWrite(Led, 0);
+  delay(100);
+  digitalWrite(Led, 1);
+  delay(100);
 }
 
 //Takes a number and displays 2 numbers. Displays absolute value (no negatives)

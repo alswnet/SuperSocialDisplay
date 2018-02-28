@@ -81,40 +81,94 @@ void setup() {
   Serial.println("---Datos----");
 }
 
-void getInstagramStatsForUser() {
+boolean getInstagramStatsForUser() {
   InstagramUserStats response = instaStats.getUserStats(userName);
   if (Sub[Instagram] != response.followedByCount) {
     Sub[Instagram] = response.followedByCount;
     Serial.print("Instagram: ");
     Serial.println(Sub[Instagram]);
+    return true;
   }
+  return false;
 }
 
-void getYoutube() {
+boolean getYoutube() {
   if (api.getChannelStatistics(CHANNEL_ID)) {
     if (Sub[Youtube] != api.channelStats.subscriberCount) {
       Sub[Youtube] = api.channelStats.subscriberCount;
       Serial.print("Youtube: ");
       Serial.println(Sub[Youtube]);
+      return true;
     }
   }
+  return false;
 }
 
-void getFacebook() {
+boolean getFacebook() {
   int pageLikes = apifb->getPageFanCount("163069780414846");
   if (Sub[Facebook] != pageLikes) {
     Sub[Facebook] = pageLikes;
     Serial.print("Facebook: ");
     Serial.println(Sub[Facebook]);
+    return true;
+  }
+  return false;
+}
+
+//note    frequency    period    timeHigh
+//c       261 Hz       3830       1915
+//d       294 Hz       3400       1700
+//e       329 Hz       3038       1519
+//f       349 Hz       2864       1432
+//g       392 Hz       2550       1275
+//a       440 Hz       2272       1136
+//b       493 Hz       2028       1014
+//C       523 Hz       1912        956
+
+int length = 15; // the number of notes
+char notes[] = "ccggaagffeeddc "; // a space represents a rest
+int beats[] = { 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 4 };
+int tempo = 300;
+
+void Tono() {
+  for (int i = 0; i < length; i++) {
+    if (notes[i] == ' ') {
+      delay(beats[i] * tempo); // rest
+    } else {
+      playNote(notes[i], beats[i] * tempo);
+    }
+  }
+}
+
+void playNote(char note, int duration) {
+  char names[] = { 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'C' };
+  int tones[] = { 1915, 1700, 1519, 1432, 1275, 1136, 1014, 956 };
+
+  // play the tone corresponding to the note name
+  for (int i = 0; i < 8; i++) {
+    if (names[i] == note) {
+      playTone(tones[i], duration);
+      delay(100);
+    }
+  }
+}
+
+void playTone(int tone, int duration) {
+  for (long i = 0; i < duration * 1000L; i += tone * 2) {
+    digitalWrite(Buzzer, HIGH);
+    delayMicroseconds(tone);
+    digitalWrite(Buzzer, LOW);
+    delayMicroseconds(tone);
   }
 }
 
 void loop() {
   unsigned long timeNow = millis();
+  boolean SiTono = false;
   if ((timeNow > whenDueToCheck))  {
-    getInstagramStatsForUser();
-    getYoutube();
-    getFacebook();
+    SiTono = SiTono || getInstagramStatsForUser();
+    SiTono = SiTono || getYoutube();
+    SiTono = SiTono || getFacebook();
     showNumber(10);
     whenDueToCheck = timeNow + delayBetweenChecks;
   }
@@ -122,6 +176,10 @@ void loop() {
   delay(100);
   digitalWrite(Led, 1);
   delay(100);
+  if (SiTono) {
+    Tono();
+    SiTono = false;
+  }
 }
 
 //Takes a number and displays 2 numbers. Displays absolute value (no negatives)

@@ -22,11 +22,11 @@ Pendiente
 
 Para utilizar este proyecto es necesario las siquientes librerias
 
-- Para Youtube >> (arduino-youtube-api)[https://github.com/witnessmenow/arduino-youtube-api] por witnessmenow
-- Para Facebook >> (arduino-facebook-api)[] por witnessmenow Temporalmente usen mi (Copia)[https://github.com/chepecarlos/arduino-facebook-api]
-- Para Instagram >> (arduino-instagram-stats)[https://github.com/witnessmenow/arduino-instagram-stats] por witnessmenow
+- Para Youtube >> [arduino-youtube-api](https://github.com/witnessmenow/arduino-youtube-api) por witnessmenow
+- Para Facebook >> [arduino-facebook-api)() por witnessmenow Temporalmente usen mi [Copia ChepeCarlos](https://github.com/chepecarlos/arduino-facebook-api)
+- Para Instagram >> [arduino-instagram-stats](https://github.com/witnessmenow/arduino-instagram-stats) por witnessmenow
 - Pendiente por Completar
 
 ## Credito
 
-[chepecarlos](http://github.com/chepecarlos) chepecarlos@alswblog.org
+[chepecarlos](chepecarlos@alswblog.org) http://github.com/chepecarlos

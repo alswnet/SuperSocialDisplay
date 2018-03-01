@@ -1,30 +1,28 @@
-#include <YoutubeApi.h>
-#include "InstagramStats.h"
-#include <ESP8266WiFi.h>
-#include <WiFiClientSecure.h>
-#include <ArduinoJson.h>
-#include <FacebookApi.h>
+#include <ESP8266WiFi.h> //Libreria de ESP8266
+#include <WiFiClientSecure.h> //Libreria de Consultas Escriptadas
+#include <YoutubeApi.h> //Libreria de Youtube
+#include "InstagramStats.h"//Libreria de Instagram
+#include <FacebookApi.h>//Libreria de Facebook
+#include <ArduinoJson.h>//Libreria de Decifrado Json
+#include "JsonStreamingParser.h"///Libreria de Decifrado Json
+#include "Contrasenna.h"
 
-#include "JsonStreamingParser.h"
-char ssid[] = "TURBONETT_ALSW";       // your network SSID (name)
-char password[] = "2526-4897";  // your network key
-#define API_KEY "AIzaSyChaTNrG24ikJ2D8hAtL2LUTPgk8U-MSyg"  // your google apps API Token
-#define CHANNEL_ID "UCS5yb75qx5GFOG-uV5JLYlQ" // makes up the url of channel
+char ssid[] = "TURBONETT_ALSW"; //Nombre de Red
+char password[] = "2526-4897";  //Contrasenna de Red
 
 WiFiClientSecure client;
 InstagramStats instaStats(client);
 YoutubeApi api(API_KEY, client);
-
-String FACEBOOK_ACCESS_TOKEN = "EAAMzCQes4NkBAB9kXSrBoMXx4IvN6i4kTEteVcb1ecS5uISZAiUG8DH0oiHUo8VCZBYXBpUSEh4ORPpHSD1a6pDDnFlZA1HkCBoOMZAhcxAIq5fNCLjZBE7wDE4aMrZCoAqqiuUuj0bAXqZClHNBkYoWOc8ml3EFBLyPODMDu1xV8siAP85cNxjRCcZA4qAbZAVMZD";    // not needed for the page fan count
-String FACEBOOK_APP_ID = "900538806624473";
-String FACEBOOK_APP_SECRET = "aacbf4b652ecf4be2290d40430c9f4d5";
 
 FacebookApi *apifb;
 
 unsigned long delayBetweenChecks = 20000; //mean time between api requests
 unsigned long whenDueToCheck = 0;
 
-String userName = "alswnet";
+//ID de Redes Sociales
+String userNameInstagram = "alswnet";//Nombre de Insgramam
+String fanpageID = "163069780414846";//ID de fanpage 
+#define CHANNEL_ID "UCS5yb75qx5GFOG-uV5JLYlQ" // ID de Canal de Youtube
 
 byte segmentClock = 13;
 byte segmentLatch = 12;
@@ -82,7 +80,7 @@ void setup() {
 }
 
 boolean getInstagramStatsForUser() {
-  InstagramUserStats response = instaStats.getUserStats(userName);
+  InstagramUserStats response = instaStats.getUserStats(userNameInstagram);
   if (Sub[Instagram] < response.followedByCount) {
     Sub[Instagram] = response.followedByCount;
     Serial.print("Instagram: ");
@@ -105,7 +103,7 @@ boolean getYoutube() {
 }
 
 boolean getFacebook() {
-  int pageLikes = apifb->getPageFanCount("163069780414846");
+  int pageLikes = apifb->getPageFanCount(fanpageID);
   if (Sub[Facebook] < pageLikes) {
     Sub[Facebook] = pageLikes;
     Serial.print("Facebook: ");

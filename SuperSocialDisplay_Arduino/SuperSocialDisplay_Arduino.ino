@@ -5,24 +5,29 @@
 #include <FacebookApi.h>//Libreria de Facebook
 #include <ArduinoJson.h>//Libreria de Decifrado Json
 #include "JsonStreamingParser.h"///Libreria de Decifrado Json
-#include "Contrasenna.h"
+#include "Contrasenna.h"//Archivo con info de contrasenas para hacer las consultas
 
+//Configuraciones de RED
 char ssid[] = "TURBONETT_ALSW"; //Nombre de Red
 char password[] = "2526-4897";  //Contrasenna de Red
 
+//ID de Redes Sociales
+#define userNameInstagram "alswnet"//usuario de Insgramam
+#define fanpageID "163069780414846"//ID de fanpage de Facebook
+#define CHANNEL_ID "UCS5yb75qx5GFOG-uV5JLYlQ" // ID de Canal de Youtube
+
 WiFiClientSecure client;
+
 InstagramStats instaStats(client);
 YoutubeApi api(API_KEY, client);
-
 FacebookApi *apifb;
 
-unsigned long delayBetweenChecks = 20000; //mean time between api requests
-unsigned long whenDueToCheck = 0;
-
-//ID de Redes Sociales
-String userNameInstagram = "alswnet";//Nombre de Insgramam
-String fanpageID = "163069780414846";//ID de fanpage 
-#define CHANNEL_ID "UCS5yb75qx5GFOG-uV5JLYlQ" // ID de Canal de Youtube
+unsigned long EsperaEstreConsulta = 20000;//cada 20 Segundos
+unsigned long EsperaCambioDisplay = 10000;//cada1 Segundo
+unsigned long SiquientePreguntaAPI = 0;
+unsigned long SiquienteCambioDisplay = 0;
+unsigned long TiempoActual = 0;
+unsigned long ValocidadBarrido = 300;
 
 byte segmentClock = 13;
 byte segmentLatch = 12;
@@ -32,54 +37,104 @@ byte segmentData = 16;
 #define Youtube 1
 #define Instagram 2
 
-const int Led = 5;
-const int Pin[3] = {15, 4, 0};
+const int LedIndicador = 5;
+const int PinLed[3] = {15, 4, 0};
 const int Buzzer = 14;
-
+const int CantidadDisplay = 4;
+int Mostar = 0;
 int Sub[3] = {0, 0, 0};
+
 void setup() {
 
   Serial.begin(115200);
-  pinMode(Led, OUTPUT);
-
+  pinMode(LedIndicador, OUTPUT);
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   delay(100);
-
-  Serial.println("Iniciando Programa");
+  Serial.println("Iniciando Programa de SuperSocialDisplay 0.1");
   Serial.print("Connecting Wifi: ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
-    digitalWrite(Led, 0);
+    digitalWrite(LedIndicador, 0);
     delay(250);
-    digitalWrite(Led, 1);
+    digitalWrite(LedIndicador, 1);
     delay(250);
   }
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
+  Melodia(0);//Tono de Activado
+  MostarNumero( 0, CantidadDisplay);
+  Serial.println("WiFi Conectada");
+  Serial.println("Direcion IP: ");
   IPAddress ip = WiFi.localIP();
   Serial.println(ip);
 
   apifb = new FacebookApi(client, FACEBOOK_ACCESS_TOKEN, FACEBOOK_APP_ID, FACEBOOK_APP_SECRET);
 
+  pinMode(Buzzer, OUTPUT);
   pinMode(segmentClock, OUTPUT);
   pinMode(segmentData, OUTPUT);
   pinMode(segmentLatch, OUTPUT);
-  pinMode(Buzzer, OUTPUT);
 
   digitalWrite(segmentClock, LOW);
   digitalWrite(segmentData, LOW);
   digitalWrite(segmentLatch, LOW);
+
   for (int i = 0; i < 3 ; i++) {
-    pinMode(Pin[i], OUTPUT);
+    pinMode(PinLed[i], OUTPUT);
+    digitalWrite(PinLed[i], 0);
   }
+
+  getYoutube();
+  getInstagram();
+  getFacebook();
+
+  Melodia(0);//Tono de Empezar
   Serial.println("---Datos----");
 }
 
-boolean getInstagramStatsForUser() {
+void loop() {
+  TiempoActual = millis();
+
+  CambiarDisplay();
+
+  getSegidores();
+
+  digitalWrite(LedIndicador, 0);
+  delay(100);
+  digitalWrite(LedIndicador, 1);
+  delay(100);
+}
+
+void CambiarDisplay() {
+  if (TiempoActual > SiquienteCambioDisplay) {
+    digitalWrite(PinLed[Mostar], 0);//Apagar el Led Anterior
+    Mostar = Mostar++ % 3;//Cambia al siquiente Red Social
+    digitalWrite(PinLed[Mostar], 1);//Encender el Led Actual
+    MostarBarrido(Sub[Mostar], CantidadDisplay);//Muestra el numero de Segidores
+    SiquienteCambioDisplay = TiempoActual + EsperaCambioDisplay;
+  }
+}
+
+void getSegidores() {
+  boolean NuevoSegidor = false;
+  if (TiempoActual > SiquientePreguntaAPI)  {
+    if (NuevoSegidor || getFacebook()) {
+
+      Melodia(Facebook);
+    } else if (NuevoSegidor || getInstagram()) {
+
+      Melodia(Instagram);
+    } else if (NuevoSegidor || getYoutube()) {
+
+      Melodia(Youtube);
+    }
+    SiquientePreguntaAPI = TiempoActual + EsperaEstreConsulta;
+  }
+}
+
+//Consulta para buscar cuando segirores en Instagram
+boolean getInstagram() {
   InstagramUserStats response = instaStats.getUserStats(userNameInstagram);
   if (Sub[Instagram] < response.followedByCount) {
     Sub[Instagram] = response.followedByCount;
@@ -90,6 +145,7 @@ boolean getInstagramStatsForUser() {
   return false;
 }
 
+//Consulta para buscar cuantos subcriptores en Youtube
 boolean getYoutube() {
   if (api.getChannelStatistics(CHANNEL_ID)) {
     if (Sub[Youtube] < api.channelStats.subscriberCount) {
@@ -102,6 +158,7 @@ boolean getYoutube() {
   return false;
 }
 
+//Consulta para buscar los seguidores una Fanpage de Facebook
 boolean getFacebook() {
   int pageLikes = apifb->getPageFanCount(fanpageID);
   if (Sub[Facebook] < pageLikes) {
@@ -113,7 +170,7 @@ boolean getFacebook() {
   return false;
 }
 
-//note    frequency    period    timeHigh
+//Nota    Frecuencia   Preriodo   TiempoEnAlto
 //c       261 Hz       3830       1915
 //d       294 Hz       3400       1700
 //e       329 Hz       3038       1519
@@ -123,12 +180,13 @@ boolean getFacebook() {
 //b       493 Hz       2028       1014
 //C       523 Hz       1912        956
 
-int length = 15; // the number of notes
-char notes[] = "ccggaagffeeddc "; // a space represents a rest
+int length = 15;
+char notes[] = "ccggaagffeeddc ";
 int beats[] = { 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 4 };
 int tempo = 300;
+float TiempoPasado = 0;
 
-void Tono() {
+void Melodia(int Melodia) {
   for (int i = 0; i < length; i++) {
     if (notes[i] == ' ') {
       delay(beats[i] * tempo); // rest
@@ -141,8 +199,6 @@ void Tono() {
 void playNote(char note, int duration) {
   char names[] = { 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'C' };
   int tones[] = { 1915, 1700, 1519, 1432, 1275, 1136, 1014, 956 };
-
-  // play the tone corresponding to the note name
   for (int i = 0; i < 8; i++) {
     if (names[i] == note) {
       playTone(tones[i], duration);
@@ -160,53 +216,35 @@ void playTone(int tone, int duration) {
   }
 }
 
-void loop() {
-  unsigned long timeNow = millis();
-  boolean SiTono = false;
-  if ((timeNow > whenDueToCheck))  {
-    SiTono = SiTono || getYoutube();
-    SiTono = SiTono || getInstagramStatsForUser();
-    SiTono = SiTono || getFacebook();
-    showNumber(10);
-    whenDueToCheck = timeNow + delayBetweenChecks;
-  }
-  digitalWrite(Led, 0);
-  delay(100);
-  digitalWrite(Led, 1);
-  delay(100);
-  if (SiTono) {
-    Tono();
-    SiTono = false;
+void MostarBarrido(float Valor, int Digitos) {
+  MostarNumero( 0, Digitos);
+  int Divisor = pow(10, Digitos);
+  for (int i = 0; i <= Digitos; i++) {
+    delay(ValocidadBarrido);
+    MostarNumero(Valor / Divisor, Digitos);
+    Divisor /= 10;
   }
 }
 
-//Takes a number and displays 2 numbers. Displays absolute value (no negatives)
-void showNumber(float value)
-{
-  int number = abs(value); //Remove negative signs and any decimals
-
-  for (byte x = 0 ; x < 2 ; x++)
-  {
+void MostarNumero(float Valor, int Digitos) {
+  int number = abs(Valor);
+  for (byte x = 0 ; x < Digitos ; x++)  {
     int remainder = number % 10;
-
     postNumber(remainder, false);
-
     number /= 10;
   }
 
-  //Latch the current segment data
   digitalWrite(segmentLatch, LOW);
-  digitalWrite(segmentLatch, HIGH); //Register moves storage register on the rising edge of RCK
+  digitalWrite(segmentLatch, HIGH);
 }
 
-//Given a number, or '-', shifts it out to the display
-void postNumber(byte number, boolean decimal)
-{
-  //    -  A
-  //   / / F/B
-  //    -  G
-  //   / / E/C
-  //    -. D/DP
+void postNumber(byte number, boolean decimal) {
+
+  //     --     A
+  //   /    /   F/B
+  //     --     G
+  //   /    /   E/C
+  //     --     D/DP
 
 #define a  1<<0
 #define b  1<<6
@@ -218,9 +256,7 @@ void postNumber(byte number, boolean decimal)
 #define dp 1<<7
 
   byte segments;
-
-  switch (number)
-  {
+  switch (number)  {
     case 1: segments = b | c; break;
     case 2: segments = a | b | d | e | g; break;
     case 3: segments = a | b | c | d | g; break;
@@ -235,14 +271,10 @@ void postNumber(byte number, boolean decimal)
     case 'c': segments = g | e | d; break;
     case '-': segments = g; break;
   }
-
   if (decimal) segments |= dp;
-
-  //Clock these bits out to the drivers
-  for (byte x = 0 ; x < 8 ; x++)
-  {
+  for (byte x = 0 ; x < 8 ; x++) {
     digitalWrite(segmentClock, LOW);
     digitalWrite(segmentData, segments & 1 << (7 - x));
-    digitalWrite(segmentClock, HIGH); //Data transfers to the register on the rising edge of SRCK
+    digitalWrite(segmentClock, HIGH);
   }
 }

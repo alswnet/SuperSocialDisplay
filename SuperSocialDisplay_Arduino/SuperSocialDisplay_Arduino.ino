@@ -8,8 +8,12 @@
 #include "Contrasenna.h"//Archivo con info de contrasenas para hacer las consultas
 
 //Configuraciones de RED
-char ssid[] = "TURBONETT_ALSW"; //Nombre de Red
-char password[] = "2526-4897";  //Contrasenna de Red
+//char ssid[] = "TURBONETT_ALSW"; //Nombre de Red
+//char password[] = "2526-4897";  //Contrasenna de Red
+//char ssid[] = "ALSW2"; //Nombre de Red
+//char password[] = "7210-3607";  //Contrasenna de Red
+char ssid[] = "G_WIFI"; //Nombre de Red
+char password[] = "Medicina09";  //Contrasenna de Red
 
 //ID de Redes Sociales
 #define userNameInstagram "alswnet"//usuario de Insgramam
@@ -22,7 +26,7 @@ InstagramStats instaStats(client);
 YoutubeApi api(API_KEY, client);
 FacebookApi *apifb;
 
-unsigned long EsperaEstreConsulta = 20000;//cada 20 Segundos
+unsigned long EsperaEstreConsulta = 60000;//cada 20 Segundos
 unsigned long EsperaCambioDisplay = 10000;//cada1 Segundo
 unsigned long SiquientePreguntaAPI = 0;
 unsigned long SiquienteCambioDisplay = 0;
@@ -48,6 +52,7 @@ void setup() {
 
   Serial.begin(115200);
   pinMode(LedIndicador, OUTPUT);
+  pinMode(Buzzer, OUTPUT);
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   delay(100);
@@ -58,11 +63,11 @@ void setup() {
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     digitalWrite(LedIndicador, 0);
-    delay(250);
+    delay(500);
     digitalWrite(LedIndicador, 1);
     delay(250);
   }
-  Melodia(0);//Tono de Activado
+  Melodia(3, false);//Tono de Activado
   MostarNumero( 0, CantidadDisplay);
   Serial.println("WiFi Conectada");
   Serial.println("Direcion IP: ");
@@ -71,7 +76,6 @@ void setup() {
 
   apifb = new FacebookApi(client, FACEBOOK_ACCESS_TOKEN, FACEBOOK_APP_ID, FACEBOOK_APP_SECRET);
 
-  pinMode(Buzzer, OUTPUT);
   pinMode(segmentClock, OUTPUT);
   pinMode(segmentData, OUTPUT);
   pinMode(segmentLatch, OUTPUT);
@@ -85,11 +89,11 @@ void setup() {
     digitalWrite(PinLed[i], 0);
   }
 
-  getYoutube();
+  //getYoutube();
   getInstagram();
   getFacebook();
 
-  Melodia(0);//Tono de Empezar
+  Melodia(4, false);//Tono de Empezar
   Serial.println("---Datos----");
 }
 
@@ -109,7 +113,7 @@ void loop() {
 void CambiarDisplay() {
   if (TiempoActual > SiquienteCambioDisplay) {
     digitalWrite(PinLed[Mostar], 0);//Apagar el Led Anterior
-    Mostar = Mostar++ % 3;//Cambia al siquiente Red Social
+    Mostar = ++Mostar % 3;//Cambia al siquiente Red Social
     digitalWrite(PinLed[Mostar], 1);//Encender el Led Actual
     MostarBarrido(Sub[Mostar], CantidadDisplay);//Muestra el numero de Segidores
     SiquienteCambioDisplay = TiempoActual + EsperaCambioDisplay;
@@ -121,13 +125,13 @@ void getSegidores() {
   if (TiempoActual > SiquientePreguntaAPI)  {
     if (NuevoSegidor || getFacebook()) {
 
-      Melodia(Facebook);
+      Melodia(Facebook, true);
     } else if (NuevoSegidor || getInstagram()) {
 
-      Melodia(Instagram);
+      Melodia(Instagram, true);
     } else if (NuevoSegidor || getYoutube()) {
 
-      Melodia(Youtube);
+      Melodia(Youtube, true);
     }
     SiquientePreguntaAPI = TiempoActual + EsperaEstreConsulta;
   }
@@ -180,18 +184,32 @@ boolean getFacebook() {
 //b       493 Hz       2028       1014
 //C       523 Hz       1912        956
 
-int length = 15;
-char notes[] = "ccggaagffeeddc ";
-int beats[] = { 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 4 };
+int Longitud[] = {15, 15, 15, 6, 6 };
+char notes[5][16] = {
+  {"ccggaagffeeddc "},//Melodia 0 >> Facebook
+  {"aabbaabbbbcc CC"},//Melodia 1 >> Youtube
+  {"ccaacbcbaaged C"},//Melodia 2 >> Instagram
+  {"ababab"},
+  {"aCaCac"}
+};
+int beats[5][16] = {
+  { 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 4 },
+  { 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 4 },
+  { 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 4 },
+  { 1, 2, 3, 3, 2, 1},
+  { 2, 1, 1, 2, 1, 1}
+};
+
 int tempo = 300;
 float TiempoPasado = 0;
 
-void Melodia(int Melodia) {
-  for (int i = 0; i < length; i++) {
-    if (notes[i] == ' ') {
-      delay(beats[i] * tempo); // rest
+void Melodia(int Melodia, boolean Random) {
+  for (int i = 0; i < Longitud[Melodia]; i++) {
+    if (Random) MostarRandom(CantidadDisplay);
+    if (notes[Melodia][i] == ' ') {
+      delay(beats[Melodia][i] * tempo);
     } else {
-      playNote(notes[i], beats[i] * tempo);
+      playNote(notes[Melodia][i], beats[Melodia][i] * tempo);
     }
   }
 }
@@ -216,6 +234,11 @@ void playTone(int tone, int duration) {
   }
 }
 
+void MostarRandom(int Digitos) {
+  int Numero = random(pow(10, Digitos));
+  MostarNumero(Numero, Digitos);
+}
+
 void MostarBarrido(float Valor, int Digitos) {
   MostarNumero( 0, Digitos);
   int Divisor = pow(10, Digitos);
@@ -230,7 +253,12 @@ void MostarNumero(float Valor, int Digitos) {
   int number = abs(Valor);
   for (byte x = 0 ; x < Digitos ; x++)  {
     int remainder = number % 10;
-    postNumber(remainder, false);
+    if (number == 0) {
+      postNumber(' ', false);
+    }
+    else {
+      postNumber(remainder, false);
+    }
     number /= 10;
   }
 

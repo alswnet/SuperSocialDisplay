@@ -1,30 +1,42 @@
+//ID de Redes Sociales
+//#define InstagramID "alswnet"//usuario de Insgramam
+//#define FacebookID "163069780414846"//ID de fanpage de Facebook
+#define YoutubeID "UCS5yb75qx5GFOG-uV5JLYlQ" // ID de Canal de Youtube
+
 #include <ESP8266WiFi.h> //Libreria de ESP8266
 #include <WiFiClientSecure.h> //Libreria de Consultas Escriptadas
+#include "Contrasenna.h"//Archivo con info de contrasenas para hacer las consultas
+
+WiFiClientSecure client;
+
+#ifdef YoutubeID
 #include <YoutubeApi.h> //Libreria de Youtube
+YoutubeApi api(API_KEY, client);
+#endif
+
+#ifdef InstagramID
 #include "InstagramStats.h"//Libreria de Instagram
+InstagramStats instaStats(client);
+#endif
+
+#ifdef FacebookID
 #include <FacebookApi.h>//Libreria de Facebook
+FacebookApi *apifb;
+#endif
+
 #include <ArduinoJson.h>//Libreria de Decifrado Json
 #include "JsonStreamingParser.h"///Libreria de Decifrado Json
-#include "Contrasenna.h"//Archivo con info de contrasenas para hacer las consultas
 
 //Configuraciones de RED
 //char ssid[] = "TURBONETT_ALSW"; //Nombre de Red
 //char password[] = "2526-4897";  //Contrasenna de Red
 //char ssid[] = "ALSW2"; //Nombre de Red
 //char password[] = "7210-3607";  //Contrasenna de Red
-char ssid[] = "G_WIFI"; //Nombre de Red
-char password[] = "Medicina09";  //Contrasenna de Red
+//char ssid[] = "TURBONETT_22C4DF"; //Nombre de Red
+//char password[] = "zQLfWT66";  //Contrasenna de Red
+char ssid[] = "Garcia WIFI"; //Nombre de Red
+char password[] = "cirugia93";  //Contrasenna de Red
 
-//ID de Redes Sociales
-#define userNameInstagram "alswnet"//usuario de Insgramam
-#define fanpageID "163069780414846"//ID de fanpage de Facebook
-#define CHANNEL_ID "UCS5yb75qx5GFOG-uV5JLYlQ" // ID de Canal de Youtube
-
-WiFiClientSecure client;
-
-InstagramStats instaStats(client);
-YoutubeApi api(API_KEY, client);
-FacebookApi *apifb;
 
 unsigned long EsperaEstreConsulta = 60000;//cada 20 Segundos
 unsigned long EsperaCambioDisplay = 10000;//cada1 Segundo
@@ -45,7 +57,7 @@ const int LedIndicador = 5;
 const int PinLed[3] = {15, 4, 0};
 const int Buzzer = 14;
 const int CantidadDisplay = 4;
-int Mostar = 0;
+int Mostar = 1;
 int Sub[3] = {0, 0, 0};
 
 void setup() {
@@ -53,12 +65,25 @@ void setup() {
   Serial.begin(115200);
   pinMode(LedIndicador, OUTPUT);
   pinMode(Buzzer, OUTPUT);
+
+  pinMode(segmentClock, OUTPUT);
+  pinMode(segmentData, OUTPUT);
+  pinMode(segmentLatch, OUTPUT);
+
+  digitalWrite(segmentClock, LOW);
+  digitalWrite(segmentData, LOW);
+  digitalWrite(segmentLatch, LOW);
+
+  MostarNumero(1234, CantidadDisplay);
+
+
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   delay(100);
   Serial.println("Iniciando Programa de SuperSocialDisplay 0.1");
   Serial.print("Connecting Wifi: ");
   Serial.println(ssid);
+  WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
@@ -74,24 +99,26 @@ void setup() {
   IPAddress ip = WiFi.localIP();
   Serial.println(ip);
 
-  apifb = new FacebookApi(client, FACEBOOK_ACCESS_TOKEN, FACEBOOK_APP_ID, FACEBOOK_APP_SECRET);
+  //apifb = new FacebookApi(client, FACEBOOK_ACCESS_TOKEN, FACEBOOK_APP_ID, FACEBOOK_APP_SECRET);
 
-  pinMode(segmentClock, OUTPUT);
-  pinMode(segmentData, OUTPUT);
-  pinMode(segmentLatch, OUTPUT);
-
-  digitalWrite(segmentClock, LOW);
-  digitalWrite(segmentData, LOW);
-  digitalWrite(segmentLatch, LOW);
 
   for (int i = 0; i < 3 ; i++) {
     pinMode(PinLed[i], OUTPUT);
     digitalWrite(PinLed[i], 0);
   }
 
-  //getYoutube();
+#ifdef InstagramID
   getInstagram();
+#endif
+  delay(10);
+#ifdef YoutubeID
+  getYoutube();
+#endif
+  delay(10);
+#ifdef FacebookID
   getFacebook();
+#endif
+  delay(10);
 
   Melodia(4, false);//Tono de Empezar
   Serial.println("---Datos----");
@@ -112,10 +139,10 @@ void loop() {
 
 void CambiarDisplay() {
   if (TiempoActual > SiquienteCambioDisplay) {
-    digitalWrite(PinLed[Mostar], 0);//Apagar el Led Anterior
-    Mostar = ++Mostar % 3;//Cambia al siquiente Red Social
-    digitalWrite(PinLed[Mostar], 1);//Encender el Led Actual
-    MostarBarrido(Sub[Mostar], CantidadDisplay);//Muestra el numero de Segidores
+    //digitalWrite(PinLed[Mostar], 0);//Apagar el Led Anterior
+    //Mostar = ++Mostar % 3;//Cambia al siquiente Red Social
+    //digitalWrite(PinLed[Mostar], 1);//Encender el Led Actual
+    MostarNumero(Sub[Mostar], CantidadDisplay);//Muestra el numero de Segidores
     SiquienteCambioDisplay = TiempoActual + EsperaCambioDisplay;
   }
 }
@@ -123,23 +150,29 @@ void CambiarDisplay() {
 void getSegidores() {
   boolean NuevoSegidor = false;
   if (TiempoActual > SiquientePreguntaAPI)  {
+#ifdef FacebookID
     if (NuevoSegidor || getFacebook()) {
-
       Melodia(Facebook, true);
-    } else if (NuevoSegidor || getInstagram()) {
-
+    }
+#endif
+#ifdef InstagramID
+    if (NuevoSegidor || getInstagram()) {
       Melodia(Instagram, true);
-    } else if (NuevoSegidor || getYoutube()) {
-
+    }
+#endif
+#ifdef YoutubeID
+    if (NuevoSegidor || getYoutube()) {
       Melodia(Youtube, true);
     }
+#endif
     SiquientePreguntaAPI = TiempoActual + EsperaEstreConsulta;
   }
 }
 
 //Consulta para buscar cuando segirores en Instagram
+#ifdef InstagramID
 boolean getInstagram() {
-  InstagramUserStats response = instaStats.getUserStats(userNameInstagram);
+  InstagramUserStats response = instaStats.getUserStats(InstagramID);
   if (Sub[Instagram] < response.followedByCount) {
     Sub[Instagram] = response.followedByCount;
     Serial.print("Instagram: ");
@@ -148,10 +181,12 @@ boolean getInstagram() {
   }
   return false;
 }
+#endif
 
 //Consulta para buscar cuantos subcriptores en Youtube
+#ifdef YoutubeID
 boolean getYoutube() {
-  if (api.getChannelStatistics(CHANNEL_ID)) {
+  if (api.getChannelStatistics(YoutubeID)) {
     if (Sub[Youtube] < api.channelStats.subscriberCount) {
       Sub[Youtube] = api.channelStats.subscriberCount;
       Serial.print("Youtube: ");
@@ -161,10 +196,12 @@ boolean getYoutube() {
   }
   return false;
 }
+#endif
 
 //Consulta para buscar los seguidores una Fanpage de Facebook
+#ifdef FacebookID
 boolean getFacebook() {
-  int pageLikes = apifb->getPageFanCount(fanpageID);
+  int pageLikes = apifb->getPageFanCount(FacebookID);
   if (Sub[Facebook] < pageLikes) {
     Sub[Facebook] = pageLikes;
     Serial.print("Facebook: ");
@@ -173,6 +210,7 @@ boolean getFacebook() {
   }
   return false;
 }
+#endif
 
 //Nota    Frecuencia   Preriodo   TiempoEnAlto
 //c       261 Hz       3830       1915

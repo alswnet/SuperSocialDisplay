@@ -26,16 +26,18 @@ FacebookApi *apifb;
 
 #include <ArduinoJson.h>//Libreria de Decifrado Json
 #include "JsonStreamingParser.h"///Libreria de Decifrado Json
+#include <Adafruit_NeoPixel.h>
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(13, 4, NEO_GRB + NEO_KHZ800);
 
 //Configuraciones de RED
 //char ssid[] = "TURBONETT_ALSW"; //Nombre de Red
 //char password[] = "2526-4897";  //Contrasenna de Red
 //char ssid[] = "ALSW2"; //Nombre de Red
 //char password[] = "7210-3607";  //Contrasenna de Red
-//char ssid[] = "TURBONETT_22C4DF"; //Nombre de Red
-//char password[] = "zQLfWT66";  //Contrasenna de Red
-char ssid[] = "Garcia WIFI"; //Nombre de Red
-char password[] = "cirugia93";  //Contrasenna de Red
+char ssid[] = "TURBONETT_22C4DF"; //Nombre de Red
+char password[] = "zQLfWT66";  //Contrasenna de Red
+//char ssid[] = "Garcia WIFI"; //Nombre de Red
+//char password[] = "cirugia93";  //Contrasenna de Red
 
 
 unsigned long EsperaEstreConsulta = 60000;//cada 20 Segundos
@@ -45,8 +47,8 @@ unsigned long SiquienteCambioDisplay = 0;
 unsigned long TiempoActual = 0;
 unsigned long ValocidadBarrido = 300;
 
-byte segmentClock = 13;
-byte segmentLatch = 12;
+byte segmentClock = 13;//
+byte segmentLatch = 12;//
 byte segmentData = 16;
 
 #define Facebook 0
@@ -54,7 +56,7 @@ byte segmentData = 16;
 #define Instagram 2
 
 const int LedIndicador = 5;
-const int PinLed[3] = {15, 4, 0};
+const int PinLed[3] = {15, 0, 0};
 const int Buzzer = 14;
 const int CantidadDisplay = 4;
 int Mostar = 1;
@@ -74,8 +76,12 @@ void setup() {
   digitalWrite(segmentData, LOW);
   digitalWrite(segmentLatch, LOW);
 
-  MostarNumero(1234, CantidadDisplay);
+  MostarNumero(9999, CantidadDisplay);
+  strip.begin();
+  strip.show();
 
+  colorWipe(strip.Color(255, 0, 0), 50); // Red
+  strip.show();
 
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
@@ -92,6 +98,8 @@ void setup() {
     digitalWrite(LedIndicador, 1);
     delay(250);
   }
+  colorWipe(strip.Color(0, 255, 0), 50); // Red
+  strip.show();
   Melodia(3, false);//Tono de Activado
   MostarNumero( 0, CantidadDisplay);
   Serial.println("WiFi Conectada");
@@ -119,7 +127,8 @@ void setup() {
   getFacebook();
 #endif
   delay(10);
-
+  colorWipe(strip.Color(0, 0, 0), 50); // Red
+  strip.show();
   Melodia(4, false);//Tono de Empezar
   Serial.println("---Datos----");
 }
@@ -144,6 +153,15 @@ void CambiarDisplay() {
     //digitalWrite(PinLed[Mostar], 1);//Encender el Led Actual
     MostarNumero(Sub[Mostar], CantidadDisplay);//Muestra el numero de Segidores
     SiquienteCambioDisplay = TiempoActual + EsperaCambioDisplay;
+  }
+}
+
+// Fill the dots one after the other with a color
+void colorWipe(int c, int esperar) {
+  for (int i = 0; i < strip.numPixels(); i++) {
+    strip.setPixelColor(i, c);
+    strip.show();
+    delay(esperar);
   }
 }
 
@@ -344,3 +362,4 @@ void postNumber(byte number, boolean decimal) {
     digitalWrite(segmentClock, HIGH);
   }
 }
+

@@ -32,10 +32,10 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(13, 4, NEO_GRB + NEO_KHZ800);
 //Configuraciones de RED
 //char ssid[] = "TURBONETT_ALSW"; //Nombre de Red
 //char password[] = "2526-4897";  //Contrasenna de Red
-//char ssid[] = "ALSW2"; //Nombre de Red
-//char password[] = "7210-3607";  //Contrasenna de Red
-char ssid[] = "TURBONETT_22C4DF"; //Nombre de Red
-char password[] = "zQLfWT66";  //Contrasenna de Red
+char ssid[] = "ALSW2"; //Nombre de Red
+char password[] = "7210-3607";  //Contrasenna de Red
+//char ssid[] = "TURBONETT_22C4DF"; //Nombre de Red
+//char password[] = "zQLfWT66";  //Contrasenna de Red
 //char ssid[] = "Garcia WIFI"; //Nombre de Red
 //char password[] = "cirugia93";  //Contrasenna de Red
 
@@ -55,9 +55,9 @@ byte segmentData = 16;
 #define Youtube 1
 #define Instagram 2
 
-const int LedIndicador = 5;
+const int LedIndicador = 14;
 const int PinLed[3] = {15, 0, 0};
-const int Buzzer = 14;
+const int Buzzer = 5;
 const int CantidadDisplay = 4;
 int Mostar = 1;
 int Sub[3] = {0, 0, 0};
@@ -180,7 +180,10 @@ void getSegidores() {
 #endif
 #ifdef YoutubeID
     if (NuevoSegidor || getYoutube()) {
+      rainbow(20);
       Melodia(Youtube, true);
+      colorWipe(strip.Color(0, 0, 0), 50); // Red
+      strip.show();
     }
 #endif
     SiquientePreguntaAPI = TiempoActual + EsperaEstreConsulta;
@@ -230,6 +233,33 @@ boolean getFacebook() {
 }
 #endif
 
+void rainbow(uint8_t wait) {
+  uint16_t i, j;
+
+  for (j = 0; j < 256; j++) {
+    for (i = 0; i < strip.numPixels(); i++) {
+      strip.setPixelColor(i, Wheel((i + j) & 255));
+    }
+    strip.show();
+    delay(wait);
+  }
+}
+
+// Input a value 0 to 255 to get a color value.
+// The colours are a transition r - g - b - back to r.
+uint32_t Wheel(byte WheelPos) {
+  WheelPos = 255 - WheelPos;
+  if (WheelPos < 85) {
+    return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+  }
+  if (WheelPos < 170) {
+    WheelPos -= 85;
+    return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+  }
+  WheelPos -= 170;
+  return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+}
+
 //Nota    Frecuencia   Preriodo   TiempoEnAlto
 //c       261 Hz       3830       1915
 //d       294 Hz       3400       1700
@@ -239,14 +269,22 @@ boolean getFacebook() {
 //a       440 Hz       2272       1136
 //b       493 Hz       2028       1014
 //C       523 Hz       1912        956
+//D       587 HZ       1703        851
+//E       659 Hz       1517        758
+//F       698 Hz       1432        716
+//G       783 Hz       1277        638
+//A       880 Hz       1136        568
+//B       987 Hz       1013        506
+//Ć      1046 Hz       956         478
 
-int Longitud[] = {15, 15, 15, 6, 6 };
-char notes[5][16] = {
+int Longitud[] = {15, 15, 15, 6, 6, 16 };
+char notes[6][20] = {
   {"ccggaagffeeddc "},//Melodia 0 >> Facebook
-  {"aabbaabbbbcc CC"},//Melodia 1 >> Youtube
+  {"ee eceg"},//Melodia 1 >> Youtube
   {"ccaacbcbaaged C"},//Melodia 2 >> Instagram
   {"ababab"},
-  {"aCaCac"}
+  {"aCaCac"},
+  {"cdefgabCDEFGABĆ"}
 };
 int beats[5][16] = {
   { 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 4 },
@@ -271,10 +309,18 @@ void Melodia(int Melodia, boolean Random) {
 }
 
 void playNote(char note, int duration) {
-  char names[] = { 'c', 'd', 'e', 'f', 'g', 'a', 'b', 'C' };
-  int tones[] = { 1915, 1700, 1519, 1432, 1275, 1136, 1014, 956 };
-  for (int i = 0; i < 8; i++) {
+  int CantidadNotas = 16;
+  char names[] = { 'c', 'd', 'e', 'f', 'g', 'a', 'b',
+                   'C', 'D', 'E', 'F', 'G', 'A', 'B',
+                   'Ć'
+                 };
+  int tones[] = { 1915, 1700, 1519, 1432, 1275, 1136, 1014,
+                  956, 851, 758, 716, 638, 568, 506,
+                  478,
+                };
+  for (int i = 0; i < CantidadNotas; i++) {
     if (names[i] == note) {
+      Serial.println(note);
       playTone(tones[i], duration);
       delay(50);
     }

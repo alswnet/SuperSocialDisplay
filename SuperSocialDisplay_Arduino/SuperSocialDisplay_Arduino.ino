@@ -76,6 +76,9 @@ void setup() {
   digitalWrite(segmentData, LOW);
   digitalWrite(segmentLatch, LOW);
 
+  while (true) {
+    Melodia(5, false);//Tono de Activado
+  }
   MostarNumero(9999, CantidadDisplay);
   strip.begin();
   strip.show();
@@ -259,39 +262,52 @@ uint32_t Wheel(byte WheelPos) {
   WheelPos -= 170;
   return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
-
+// Tonos y Fecuencias sacados de https://es.m.wikipedia.org/wiki/Frecuencias_de_afinación_del_piano
+// c normal  y c# sostenida
 //Nota    Frecuencia   Preriodo   TiempoEnAlto
 //c       261 Hz       3830       1915
+//c#      277 Hz       3610       1805
 //d       294 Hz       3400       1700
+//d#      311 Hz       3215       1607
 //e       329 Hz       3038       1519
 //f       349 Hz       2864       1432
+//f#      370 Hz       2702       1351
 //g       392 Hz       2550       1275
+//g#      415 Hz       2409       1204
 //a       440 Hz       2272       1136
+//a#      466 Hz       2145       1072
 //b       493 Hz       2028       1014
 //C       523 Hz       1912        956
+//C#      554 Hz       1805        902
 //D       587 HZ       1703        851
+//D#      622 Hz       1607        803
 //E       659 Hz       1517        758
 //F       698 Hz       1432        716
+//F#      740 Hz       1351        675
 //G       783 Hz       1277        638
+//G#      830 Hz       1204        602
 //A       880 Hz       1136        568
+//A#      932 Hz       1072        536
 //B       987 Hz       1013        506
-//Ć      1046 Hz       956         478
+//¢      1046 Hz       956         478
 
-int Longitud[] = {15, 15, 15, 6, 6, 16 };
-char notes[6][20] = {
+int Longitud[] = {15, 15, 15, 6, 6, 36 };
+char notes[6][50] = {
   {"ccggaagffeeddc "},//Melodia 0 >> Facebook
   {"ee eceg"},//Melodia 1 >> Youtube
   {"ccaacbcbaaged C"},//Melodia 2 >> Instagram
   {"ababab"},
-  {"aCaCac"},
-  {"cdefgabCDEFGABĆ"}
+  {""},//Pokemon
+  {"cc#dd#eff#gg#aa#bCC#DD#EFF#GG#AA#BĆ"}
 };
-int beats[5][16] = {
+
+int beats[6][50] = {
   { 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 4 },
   { 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 4 },
   { 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 4 },
   { 1, 2, 3, 3, 2, 1},
-  { 2, 1, 1, 2, 1, 1}
+  { 2, 1, 1, 2, 1, 1},
+  { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
 };
 
 int tempo = 300;
@@ -303,32 +319,45 @@ void Melodia(int Melodia, boolean Random) {
     if (notes[Melodia][i] == ' ') {
       delay(beats[Melodia][i] * tempo);
     } else {
-      playNote(notes[Melodia][i], beats[Melodia][i] * tempo);
+      if (notes[Melodia][i + 1] == '#') {
+        playNote(notes[Melodia][i], beats[Melodia][i] * tempo, true);
+        i++;
+      }
+      else {
+        playNote(notes[Melodia][i], beats[Melodia][i] * tempo, false);
+      }
     }
   }
 }
 
-void playNote(char note, int duration) {
-  int CantidadNotas = 16;
-  char names[] = { 'c', 'd', 'e', 'f', 'g', 'a', 'b',
-                   'C', 'D', 'E', 'F', 'G', 'A', 'B',
+void playNote(char note, int duration, boolean sostenido) {
+  int CantidadNotas = 25;
+  char names[] = { 'c', '#', 'd', '#', 'e', 'f', '#', 'g', '#',  'a', '#', 'b',
+                   'C', '#',  'D', '#',  'E', 'F', '#',  'G', '#',  'A', '#',  'B',
                    'Ć'
                  };
-  int tones[] = { 1915, 1700, 1519, 1432, 1275, 1136, 1014,
-                  956, 851, 758, 716, 638, 568, 506,
-                  478,
+  int tones[] = { 1915, 1805, 1700, 1607, 1519, 1432, 1351, 1275,  1204, 1136, 1072, 1014,
+                  956, 902, 851, 803, 758, 716, 675, 638, 602, 568, 536, 506,
+                  478
                 };
   for (int i = 0; i < CantidadNotas; i++) {
     if (names[i] == note) {
-      Serial.println(note);
-      playTone(tones[i], duration);
+      Serial.print(note);
+      if (sostenido) {
+        Serial.print('#');
+        playTone(tones[i + 1], duration);
+      }
+      else {
+        playTone(tones[i], duration);
+      }
+      Serial.println("");
       delay(50);
     }
   }
 }
 
 void playTone(int tone, int duration) {
-  for (long i = 0; i < duration * 1000L; i += tone * 2) {
+  for (long i = 0; i < duration * 500L; i += tone * 2) {
     digitalWrite(Buzzer, HIGH);
     delayMicroseconds(tone);
     digitalWrite(Buzzer, LOW);

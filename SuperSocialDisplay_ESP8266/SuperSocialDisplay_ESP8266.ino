@@ -77,7 +77,7 @@ void setup() {
   digitalWrite(segmentLatch, LOW);
 
   while (true) {
-    Melodia(4, false);//Tono de Activado
+  //  Melodia(4, false);//Tono de Activado
   }
 
   MostarNumero(9999, CantidadDisplay);
@@ -133,7 +133,7 @@ void setup() {
   delay(10);
   colorWipe(strip.Color(0, 0, 0), 50); // Red
   strip.show();
-  Melodia(4, false);//Tono de Empezar
+  //Melodia(4, false);//Tono de Empezar
   Serial.println("---Datos----");
 }
 
@@ -174,18 +174,18 @@ void getSegidores() {
   if (TiempoActual > SiquientePreguntaAPI)  {
 #ifdef FacebookID
     if (NuevoSegidor || getFacebook()) {
-      Melodia(Facebook, true);
+     // Melodia(Facebook, true);
     }
 #endif
 #ifdef InstagramID
     if (NuevoSegidor || getInstagram()) {
-      Melodia(Instagram, true);
+     // Melodia(Instagram, true);
     }
 #endif
 #ifdef YoutubeID
     if (NuevoSegidor || getYoutube()) {
       rainbow(20);
-      Melodia(Youtube, true);
+    //  Melodia(Youtube, true);
       colorWipe(strip.Color(0, 0, 0), 50); // Red
       strip.show();
     }
@@ -236,206 +236,4 @@ boolean getFacebook() {
   return false;
 }
 #endif
-
-void rainbow(uint8_t wait) {
-  uint16_t i, j;
-
-  for (j = 0; j < 256; j++) {
-    for (i = 0; i < strip.numPixels(); i++) {
-      strip.setPixelColor(i, Wheel((i + j) & 255));
-    }
-    strip.show();
-    delay(wait);
-  }
-}
-
-// Input a value 0 to 255 to get a color value.
-// The colours are a transition r - g - b - back to r.
-uint32_t Wheel(byte WheelPos) {
-  WheelPos = 255 - WheelPos;
-  if (WheelPos < 85) {
-    return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
-  }
-  if (WheelPos < 170) {
-    WheelPos -= 85;
-    return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
-  }
-  WheelPos -= 170;
-  return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
-}
-// Tonos y Fecuencias sacados de https://es.m.wikipedia.org/wiki/Frecuencias_de_afinación_del_piano
-// c normal  y c# sostenida
-//Nota    Frecuencia   Preriodo   TiempoEnAlto
-//c       261 Hz       3830       1915
-//c#      277 Hz       3610       1805
-//d       294 Hz       3400       1700
-//d#      311 Hz       3215       1607
-//e       329 Hz       3038       1519
-//f       349 Hz       2864       1432
-//f#      370 Hz       2702       1351
-//g       392 Hz       2550       1275
-//g#      415 Hz       2409       1204
-//a       440 Hz       2272       1136
-//a#      466 Hz       2145       1072
-//b       493 Hz       2028       1014
-//C       523 Hz       1912        956
-//C#      554 Hz       1805        902
-//D       587 HZ       1703        851
-//D#      622 Hz       1607        803
-//E       659 Hz       1517        758
-//F       698 Hz       1432        716
-//F#      740 Hz       1351        675
-//G       783 Hz       1277        638
-//G#      830 Hz       1204        602
-//A       880 Hz       1136        568
-//A#      932 Hz       1072        536
-//B       987 Hz       1013        506
-//¢      1046 Hz       956         478
-
-int Longitud[] = {15, 15, 15, 6, 39, 36 };
-char notes[6][50] = {
-  {"ccggaagffeeddc "},//Melodia 0 >> Facebook
-  {"ee eceg"},//Melodia 1 >> Youtube
-  {"ccaacbcbaaged C"},//Melodia 2 >> Instagram
-  {"ababab"},
-  {"AG#GF#G#GF#FGF#FEF#FED#FED#DED#DC#CDC#C"},//Pokemon 4
-  {"cc#dd#eff#gg#aa#bCC#DD#EFF#GG#AA#BĆ"}
-};
-
-int beats[6][50] = {
-  { 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 4 },
-  { 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 4 },
-  { 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 4 },
-  { 1, 2, 3, 3, 2, 1},
-  { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-  { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
-};
-
-int tempo = 300;
-float TiempoPasado = 0;
-
-void Melodia(int Melodia, boolean Random) {
-  for (int i = 0; i < Longitud[Melodia]; i++) {
-    if (Random) MostarRandom(CantidadDisplay);
-    if (notes[Melodia][i] == ' ') {
-      delay(beats[Melodia][i] * tempo);
-    } else {
-      if (notes[Melodia][i + 1] == '#') {
-        playNote(notes[Melodia][i], beats[Melodia][i] * tempo, true);
-        i++;
-      }
-      else {
-        playNote(notes[Melodia][i], beats[Melodia][i] * tempo, false);
-      }
-    }
-  }
-}
-
-void playNote(char note, int duration, boolean sostenido) {
-  int CantidadNotas = 25;
-  char names[] = { 'c', '#', 'd', '#', 'e', 'f', '#', 'g', '#',  'a', '#', 'b',
-                   'C', '#',  'D', '#',  'E', 'F', '#',  'G', '#',  'A', '#',  'B',
-                   'Ć'
-                 };
-  int tones[] = { 1915, 1805, 1700, 1607, 1519, 1432, 1351, 1275,  1204, 1136, 1072, 1014,
-                  956, 902, 851, 803, 758, 716, 675, 638, 602, 568, 536, 506,
-                  478
-                };
-  for (int i = 0; i < CantidadNotas; i++) {
-    if (names[i] == note) {
-      Serial.print(note);
-      if (sostenido) {
-        Serial.print('#');
-        playTone(tones[i + 1], duration);
-      }
-      else {
-        playTone(tones[i], duration);
-      }
-      Serial.println("");
-      delay(50);
-    }
-  }
-}
-
-void playTone(int tone, int duration) {
-  for (long i = 0; i < duration * 250L; i += tone * 2) {
-    digitalWrite(Buzzer, HIGH);
-    delayMicroseconds(tone);
-    digitalWrite(Buzzer, LOW);
-    delayMicroseconds(tone);
-  }
-}
-
-void MostarRandom(int Digitos) {
-  int Numero = random(pow(10, Digitos));
-  MostarNumero(Numero, Digitos);
-}
-
-void MostarBarrido(float Valor, int Digitos) {
-  MostarNumero( 0, Digitos);
-  int Divisor = pow(10, Digitos);
-  for (int i = 0; i <= Digitos; i++) {
-    delay(ValocidadBarrido);
-    MostarNumero(Valor / Divisor, Digitos);
-    Divisor /= 10;
-  }
-}
-
-void MostarNumero(float Valor, int Digitos) {
-  int number = abs(Valor);
-  for (byte x = 0 ; x < Digitos ; x++)  {
-    int remainder = number % 10;
-    if (number == 0) {
-      postNumber(' ', false);
-    }
-    else {
-      postNumber(remainder, false);
-    }
-    number /= 10;
-  }
-
-  digitalWrite(segmentLatch, LOW);
-  digitalWrite(segmentLatch, HIGH);
-}
-
-void postNumber(byte number, boolean decimal) {
-
-  //     --     A
-  //   /    /   F/B
-  //     --     G
-  //   /    /   E/C
-  //     --     D/DP
-
-#define a  1<<0
-#define b  1<<6
-#define c  1<<5
-#define d  1<<4
-#define e  1<<3
-#define f  1<<1
-#define g  1<<2
-#define dp 1<<7
-
-  byte segments;
-  switch (number)  {
-    case 1: segments = b | c; break;
-    case 2: segments = a | b | d | e | g; break;
-    case 3: segments = a | b | c | d | g; break;
-    case 4: segments = f | g | b | c; break;
-    case 5: segments = a | f | g | c | d; break;
-    case 6: segments = a | f | g | e | c | d; break;
-    case 7: segments = a | b | c; break;
-    case 8: segments = a | b | c | d | e | f | g; break;
-    case 9: segments = a | b | c | d | f | g; break;
-    case 0: segments = a | b | c | d | e | f; break;
-    case ' ': segments = 0; break;
-    case 'c': segments = g | e | d; break;
-    case '-': segments = g; break;
-  }
-  if (decimal) segments |= dp;
-  for (byte x = 0 ; x < 8 ; x++) {
-    digitalWrite(segmentClock, LOW);
-    digitalWrite(segmentData, segments & 1 << (7 - x));
-    digitalWrite(segmentClock, HIGH);
-  }
-}
 

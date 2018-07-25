@@ -19,10 +19,10 @@ WiFiClientSecure client;
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(13, 4, NEO_GRB + NEO_KHZ800);
 
 //Configuraciones de RED
-char ssid1[] = "ALSW"; //Nombre de Red 1
-char password1[] = "2526-4897";  //Contrasenna de Red 1
-char ssid2[] = "ALSW2"; //Nombre de Red 2
-char password2[] = "7210-3607";  //Contrasenna de Red 2
+char ssid2[] = "ALSW"; //Nombre de Red 2
+char password2[] = "2526-4897";  //Contrasenna de Red 2
+char ssid1[] = "ALSW2"; //Nombre de Red 1
+char password1[] = "7210-3607";  //Contrasenna de Red 1
 
 unsigned long EsperaEstreConsulta = 60000;//cada 20 Segundos
 unsigned long EsperaCambioDisplay = 10000;//cada1 Segundo
@@ -50,30 +50,12 @@ void setup() {
 
   colorWipe(strip.Color(255, 0, 0), 50); // Red
   strip.show();
-
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
-  delay(100);
-  Serial.println("Iniciando Programa de SuperSocialDisplay 0.1");
-  Serial.print("Connecting Wifi: ");
-  Serial.println(ssid1);
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid1, password1);
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
-    digitalWrite(LedIndicador, 0);
-    delay(500);
-    digitalWrite(LedIndicador, 1);
-    delay(250);
-  }
+  ConectarWifi();
   colorWipe(strip.Color(0, 255, 0), 50); // Red
   strip.show();
 
   MostarNumero( 0, CantidadDisplay);
-  Serial.println("WiFi Conectada");
-  Serial.println("Direcion IP: ");
-  IPAddress ip = WiFi.localIP();
-  Serial.println(ip);
+  
 
   //apifb = new FacebookApi(client, FACEBOOK_ACCESS_TOKEN, FACEBOOK_APP_ID, FACEBOOK_APP_SECRET);
 

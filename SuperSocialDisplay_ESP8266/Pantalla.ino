@@ -1,4 +1,19 @@
 
+byte segmentClock = 13;//
+byte segmentLatch = 12;//
+byte segmentData = 16;
+
+void InicializarPantallas() {
+  pinMode(segmentClock, OUTPUT);
+  pinMode(segmentData, OUTPUT);
+  pinMode(segmentLatch, OUTPUT);
+
+  digitalWrite(segmentClock, LOW);
+  digitalWrite(segmentData, LOW);
+  digitalWrite(segmentLatch, LOW);
+
+}
+
 void MostarRandom(int Digitos) {
   int Numero = random(pow(10, Digitos));
   MostarNumero(Numero, Digitos);

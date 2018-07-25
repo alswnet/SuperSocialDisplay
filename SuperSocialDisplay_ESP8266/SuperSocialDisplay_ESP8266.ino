@@ -1,7 +1,11 @@
 //ID de Redes Sociales
-//#define InstagramID "alswnet"//usuario de Insgramam
+#define InstagramID "alswnet"//usuario de Insgramam
 //#define FacebookID "163069780414846"//ID de fanpage de Facebook
 #define YoutubeID "UCS5yb75qx5GFOG-uV5JLYlQ" // ID de Canal de Youtube
+
+#define Facebook 0
+#define Youtube 1
+#define Instagram 2
 
 #include <ESP8266WiFi.h> //Libreria de ESP8266
 #include <WiFiClientSecure.h> //Libreria de Consultas Escriptadas
@@ -9,36 +13,16 @@
 
 WiFiClientSecure client;
 
-#ifdef YoutubeID
-#include <YoutubeApi.h> //Libreria de Youtube
-YoutubeApi api(API_KEY, client);
-#endif
-
-#ifdef InstagramID
-#include "InstagramStats.h"//Libreria de Instagram
-InstagramStats instaStats(client);
-#endif
-
-#ifdef FacebookID
-#include <FacebookApi.h>//Libreria de Facebook
-FacebookApi *apifb;
-#endif
-
 #include <ArduinoJson.h>//Libreria de Decifrado Json
 #include "JsonStreamingParser.h"///Libreria de Decifrado Json
 #include <Adafruit_NeoPixel.h>
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(13, 4, NEO_GRB + NEO_KHZ800);
 
 //Configuraciones de RED
-//char ssid[] = "TURBONETT_ALSW"; //Nombre de Red
-//char password[] = "2526-4897";  //Contrasenna de Red
-char ssid[] = "ALSW2"; //Nombre de Red
-char password[] = "7210-3607";  //Contrasenna de Red
-//char ssid[] = "TURBONETT_22C4DF"; //Nombre de Red
-//char password[] = "zQLfWT66";  //Contrasenna de Red
-//char ssid[] = "Garcia WIFI"; //Nombre de Red
-//char password[] = "cirugia93";  //Contrasenna de Red
-
+char ssid1[] = "ALSW"; //Nombre de Red 1
+char password1[] = "2526-4897";  //Contrasenna de Red 1
+char ssid2[] = "ALSW2"; //Nombre de Red 2
+char password2[] = "7210-3607";  //Contrasenna de Red 2
 
 unsigned long EsperaEstreConsulta = 60000;//cada 20 Segundos
 unsigned long EsperaCambioDisplay = 10000;//cada1 Segundo
@@ -47,17 +31,9 @@ unsigned long SiquienteCambioDisplay = 0;
 unsigned long TiempoActual = 0;
 unsigned long ValocidadBarrido = 300;
 
-byte segmentClock = 13;//
-byte segmentLatch = 12;//
-byte segmentData = 16;
 
-#define Facebook 0
-#define Youtube 1
-#define Instagram 2
-
-const int LedIndicador = 14;
+const int LedIndicador = 5;
 const int PinLed[3] = {15, 0, 0};
-const int Buzzer = 5;
 const int CantidadDisplay = 4;
 int Mostar = 1;
 int Sub[3] = {0, 0, 0};
@@ -66,19 +42,7 @@ void setup() {
 
   Serial.begin(115200);
   pinMode(LedIndicador, OUTPUT);
-  pinMode(Buzzer, OUTPUT);
-
-  pinMode(segmentClock, OUTPUT);
-  pinMode(segmentData, OUTPUT);
-  pinMode(segmentLatch, OUTPUT);
-
-  digitalWrite(segmentClock, LOW);
-  digitalWrite(segmentData, LOW);
-  digitalWrite(segmentLatch, LOW);
-
-  while (true) {
-  //  Melodia(4, false);//Tono de Activado
-  }
+  InicializarPantallas();
 
   MostarNumero(9999, CantidadDisplay);
   strip.begin();
@@ -92,9 +56,9 @@ void setup() {
   delay(100);
   Serial.println("Iniciando Programa de SuperSocialDisplay 0.1");
   Serial.print("Connecting Wifi: ");
-  Serial.println(ssid);
+  Serial.println(ssid1);
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
+  WiFi.begin(ssid1, password1);
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     digitalWrite(LedIndicador, 0);
@@ -174,18 +138,18 @@ void getSegidores() {
   if (TiempoActual > SiquientePreguntaAPI)  {
 #ifdef FacebookID
     if (NuevoSegidor || getFacebook()) {
-     // Melodia(Facebook, true);
+      // Melodia(Facebook, true);
     }
 #endif
 #ifdef InstagramID
     if (NuevoSegidor || getInstagram()) {
-     // Melodia(Instagram, true);
+      // Melodia(Instagram, true);
     }
 #endif
 #ifdef YoutubeID
     if (NuevoSegidor || getYoutube()) {
       rainbow(20);
-    //  Melodia(Youtube, true);
+      //  Melodia(Youtube, true);
       colorWipe(strip.Color(0, 0, 0), 50); // Red
       strip.show();
     }
@@ -194,46 +158,4 @@ void getSegidores() {
   }
 }
 
-//Consulta para buscar cuando segirores en Instagram
-#ifdef InstagramID
-boolean getInstagram() {
-  InstagramUserStats response = instaStats.getUserStats(InstagramID);
-  if (Sub[Instagram] < response.followedByCount) {
-    Sub[Instagram] = response.followedByCount;
-    Serial.print("Instagram: ");
-    Serial.println(Sub[Instagram]);
-    return true;
-  }
-  return false;
-}
-#endif
-
-//Consulta para buscar cuantos subcriptores en Youtube
-#ifdef YoutubeID
-boolean getYoutube() {
-  if (api.getChannelStatistics(YoutubeID)) {
-    if (Sub[Youtube] < api.channelStats.subscriberCount) {
-      Sub[Youtube] = api.channelStats.subscriberCount;
-      Serial.print("Youtube: ");
-      Serial.println(Sub[Youtube]);
-      return true;
-    }
-  }
-  return false;
-}
-#endif
-
-//Consulta para buscar los seguidores una Fanpage de Facebook
-#ifdef FacebookID
-boolean getFacebook() {
-  int pageLikes = apifb->getPageFanCount(FacebookID);
-  if (Sub[Facebook] < pageLikes) {
-    Sub[Facebook] = pageLikes;
-    Serial.print("Facebook: ");
-    Serial.println(Sub[Facebook]);
-    return true;
-  }
-  return false;
-}
-#endif
 

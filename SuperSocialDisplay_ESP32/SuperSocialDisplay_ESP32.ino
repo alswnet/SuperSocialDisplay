@@ -1,6 +1,6 @@
 //ID de Redes Sociales
 #define InstagramID "alswnet"//usuario de Insgramam
-//#define FacebookID "163069780414846"//ID de fanpage de Facebook
+#define FacebookID "163069780414846"//ID de fanpage de Facebook
 #define YoutubeID "UCS5yb75qx5GFOG-uV5JLYlQ" // ID de Canal de Youtube
 
 #define Facebook 0
@@ -60,24 +60,30 @@ void setup() {
 
   MostarNumero( 0, CantidadDisplay);
 
-
-  //apifb = new FacebookApi(client, FACEBOOK_ACCESS_TOKEN, FACEBOOK_APP_ID, FACEBOOK_APP_SECRET);
-
+#ifdef FacebookID
+  IniciarFacebook();
+#endif
 
   for (int i = 0; i < 3 ; i++) {
     pinMode(PinLed[i], OUTPUT);
     digitalWrite(PinLed[i], 0);
   }
+
 #ifdef InstagramID
   getInstagram();
-#endif
   delay(10);
+#endif
+
 #ifdef YoutubeID
   getYoutube();
+  delay(10);
 #endif
-  delay(10);
 
+#ifdef FacebookID
+  getFacebook();
   delay(10);
+#endif
+
   colorWipe(strip.Color(0, 0, 0), 50); // Red
   strip.show();
   //Melodia(4, false);//Tono de Empezar
@@ -144,7 +150,7 @@ void getSegidores() {
   if (TiempoActual > SiquientePreguntaAPI)  {
     Serial.print("Buscando.");
 #ifdef FacebookID
-    Serial.println(".F.");
+    Serial.print(".F.");
     if (NuevoSegidor || getFacebook()) {
       // Melodia(Facebook, true);
     }

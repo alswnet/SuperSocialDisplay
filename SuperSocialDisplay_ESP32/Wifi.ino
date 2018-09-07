@@ -1,8 +1,16 @@
 void ConectarWifi() {
-  wifiMulti.addAP(ssid, password);
-  wifiMulti.addAP("ssid_from_AP_2", "your_password_for_AP_2");
-  wifiMulti.addAP("ssid_from_AP_3", "your_password_for_AP_3");
 
+  wifiMulti.addAP(ssid1, password1);
+  wifiMulti.addAP(ssid2, password2);
+  wifiMulti.addAP(ssid3, password3);
+
+  Serial.println("Conectando con Wifi...");
+  if (wifiMulti.run() == WL_CONNECTED) {
+    Serial.println("");
+    Serial.println("WiFi Conectado");
+    Serial.println("Mi IP es: ");
+    Serial.println(WiFi.localIP());
+  }
 
   /*bool Red1 = true;
     int CantidadIntentos = 10;
@@ -48,4 +56,12 @@ void ConectarWifi() {
     IPAddress ip = WiFi.localIP();
     Serial.println(ip);
   */
+}
+
+
+void WifiActiva() {
+  if (wifiMulti.run() != WL_CONNECTED) {
+    Serial.println("Wifi No Conectada!");
+    delay(1000);
+  }
 }

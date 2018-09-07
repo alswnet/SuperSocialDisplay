@@ -12,6 +12,7 @@
 #include <WiFiClientSecure.h> //Libreria de Consultas Escriptadas
 #include "Contrasenna.h"//Archivo con info de contrasenas para hacer las consultas
 
+WiFiMulti wifiMulti;
 WiFiClientSecure client;
 
 #include <ArduinoJson.h>//Libreria de Decifrado Json
@@ -84,6 +85,8 @@ void setup() {
 }
 
 void loop() {
+  WifiActiva();
+
   TiempoActual = millis();
 
   CambiarDisplay();

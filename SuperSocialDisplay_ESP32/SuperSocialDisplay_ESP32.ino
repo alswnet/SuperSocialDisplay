@@ -29,57 +29,42 @@ char ssid1[] = "ALSW2"; //Nombre de Red 1
 char password1[] = "7210-3607";  //Contrasenna de Red 1
 
 unsigned long EsperaEstreConsulta = 1000;//cada n/1000 segundos
-unsigned long EsperaCambioDisplay = 100000;//cada n/1000 Segundo
+unsigned long EsperaCambioDisplay = 10000;//cada n/1000 Segundo
 unsigned long SiquientePreguntaAPI = 0;
 unsigned long SiquienteCambioDisplay = 0;
 unsigned long TiempoActual = 0;
 unsigned long ValocidadBarrido = 300;
 
-
 const int LedIndicador = 5;
-const int PinLed[3] = {15, 0, 0};
 const int CantidadDisplay = 4;
 int Mostar = 1;
+int Estado = 0;
 int Sub[3] = {0, 0, 0};
 
 void setup() {
-
   Serial.begin(115200);
   pinMode(LedIndicador, OUTPUT);
-  InicializarPantallas();
-
-  MostarNumero(9999, CantidadDisplay);
-  strip.begin();
-  strip.show();
-
-  colorWipe(strip.Color(255, 0, 0), 50); // Red
-  strip.show();
-  ConectarWifi();
-  colorWipe(strip.Color(0, 255, 0), 50); // Red
-  strip.show();
-
-  MostarNumero( 0, CantidadDisplay);
-
-  for (int i = 0; i < 3 ; i++) {
-    pinMode(PinLed[i], OUTPUT);
-    digitalWrite(PinLed[i], 0);
-  }
 
   //Activando codig a cargarse en procesador 0
   //Procesador 1 Exclusico para Wifi
   //Procesador 0 Actualizar pantalla y Botones
   xTaskCreatePinnedToCore(
-    MultiCore,   /* Function to implement the task */
-    "MultiCore", /* Name of the task */
-    10000,      /* Stack size in words */
-    NULL,       /* Task input parameter */
-    0,          /* Priority of the task */
-    NULL,       /* Task handle. */
-    0);  /* Core where the task should run */
+    MultiCore,   /* Nombre de la funcion */
+    "MultiCore", /* Nombre del proceso  */
+    10000,      /* Tamano de palabra */
+    NULL,       /* parametros de entrada */
+    0,          /* Prioridas del proceso */
+    NULL,       /* Manejo del proceso  */
+    0);  /* Procesador a poner la operacion */
+  delay(100);
 
+  ConectarWifi();
+
+  Estado = 1;
 
 #ifdef FacebookID
   IniciarFacebook();
+  delay(10);
 #endif
 
 #ifdef InstagramID
@@ -97,10 +82,8 @@ void setup() {
   delay(10);
 #endif
 
-  colorWipe(strip.Color(0, 0, 0), 50); // Red
-  strip.show();
-  //Melodia(4, false);//Tono de Empezar
-  Serial.println("---Datos----");
+  Estado = 2;
+
 }
 
 void loop() {
@@ -108,55 +91,9 @@ void loop() {
 
   TiempoActual = millis();
 
-  CambiarDisplay();
-
   getSegidores();
-
-  digitalWrite(LedIndicador, 0);
-  delay(100);
-  digitalWrite(LedIndicador, 1);
-  delay(100);
 }
 
-void CambiarDisplay() {
-  if (TiempoActual > SiquienteCambioDisplay) {
-    Mostar =  SiquienteRed(Mostar) ;
-    MostarNumero(Sub[Mostar], CantidadDisplay);//Muestra el numero de Segidores
-    SiquienteCambioDisplay = TiempoActual + EsperaCambioDisplay;
-  }
-}
-
-int  SiquienteRed(int Actual) {
-  while (true) {
-    Actual++;
-    if (Actual > 2 )
-      Actual = 0;
-
-#ifdef FacebookID
-    if (Actual == Facebook)
-      return Actual;
-#endif
-
-#ifdef InstagramID
-    if (Actual == Instagram)
-      return Actual;
-#endif
-
-#ifdef YoutubeID
-    if (Actual == Youtube)
-      return Actual;
-#endif
-  }
-}
-
-// Fill the dots one after the other with a color
-void colorWipe(int c, int esperar) {
-  for (int i = 0; i < strip.numPixels(); i++) {
-    strip.setPixelColor(i, c);
-    strip.show();
-    delay(esperar);
-  }
-}
 
 void getSegidores() {
   boolean NuevoSegidor = false;
@@ -165,20 +102,17 @@ void getSegidores() {
 #ifdef FacebookID
     Serial.print(".F.");
     if (NuevoSegidor || getFacebook()) {
-      // Melodia(Facebook, true);
     }
 #endif
 #ifdef InstagramID
     Serial.print(".I.");
     if (NuevoSegidor || getInstagram()) {
-      // Melodia(Instagram, true);
     }
 #endif
 #ifdef YoutubeID
     Serial.print(".Y.");
     if (NuevoSegidor || getYoutube()) {
       rainbow(20);
-      //  Melodia(Youtube, true);
       colorWipe(strip.Color(0, 0, 0), 50); // Red
       strip.show();
     }

@@ -60,14 +60,27 @@ void setup() {
 
   MostarNumero( 0, CantidadDisplay);
 
-#ifdef FacebookID
-  IniciarFacebook();
-#endif
-
   for (int i = 0; i < 3 ; i++) {
     pinMode(PinLed[i], OUTPUT);
     digitalWrite(PinLed[i], 0);
   }
+
+  //Activando codig a cargarse en procesador 0
+  //Procesador 1 Exclusico para Wifi
+  //Procesador 0 Actualizar pantalla y Botones
+  xTaskCreatePinnedToCore(
+    MultiCore,   /* Function to implement the task */
+    "MultiCore", /* Name of the task */
+    10000,      /* Stack size in words */
+    NULL,       /* Task input parameter */
+    0,          /* Priority of the task */
+    NULL,       /* Task handle. */
+    0);  /* Core where the task should run */
+
+
+#ifdef FacebookID
+  IniciarFacebook();
+#endif
 
 #ifdef InstagramID
   getInstagram();
@@ -170,7 +183,7 @@ void getSegidores() {
       strip.show();
     }
 #endif
-    if (NuevoSegidor ) {
+    if (NuevoSegidor) {
       Serial.println(".Si");
     }
     else {

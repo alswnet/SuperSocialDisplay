@@ -33,7 +33,7 @@ unsigned long ValocidadBarrido = 300;
 
 
 const int LedIndicador = 5;
-const int PinLed[3] = {15, 0, 0};
+const int PinLed[3] = {0, 0, 0};
 const int CantidadDisplay = 4;
 int Mostar = 1;
 int Sub[3] = {0, 0, 0};
@@ -55,7 +55,7 @@ void setup() {
   strip.show();
 
   MostarNumero( 0, CantidadDisplay);
-  
+
 
   //apifb = new FacebookApi(client, FACEBOOK_ACCESS_TOKEN, FACEBOOK_APP_ID, FACEBOOK_APP_SECRET);
 
@@ -139,5 +139,3 @@ void getSegidores() {
     SiquientePreguntaAPI = TiempoActual + EsperaEstreConsulta;
   }
 }
-
-

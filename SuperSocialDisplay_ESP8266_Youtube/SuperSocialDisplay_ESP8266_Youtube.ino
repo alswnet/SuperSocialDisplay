@@ -57,7 +57,7 @@ void loop() {
     delay(500);
     MostarNumero(8888, 4);
     delay(500);
-    MostarNumero(0, 4);
+    MostarNumero(CantidadSub, 4);
   }
 
   if (millis() - api_lasttime > api_mtbs)  {

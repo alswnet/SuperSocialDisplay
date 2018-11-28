@@ -11,6 +11,8 @@ char ssid1[] = "ALSW2";       // your network SSID (name)
 char password1[] = "7210-3607";  // your network key
 char ssid2[] = "Garcia Wifi";
 char password2[] = "cirugia93";
+char ssid3[] = "ALSW";
+char password3[] = "2526-4897";
 #define API_KEY "AIzaSyChaTNrG24ikJ2D8hAtL2LUTPgk8U-MSyg"  // your google apps API Token
 #define CHANNEL_ID "UCS5yb75qx5GFOG-uV5JLYlQ" // makes up the url of channel
 
@@ -38,6 +40,7 @@ void setup() {
 
   wifiMulti.addAP(ssid1, password1);
   wifiMulti.addAP(ssid2, password2);
+  wifiMulti.addAP(ssid3, password3);
 
 
   if (wifiMulti.run() == WL_CONNECTED) {

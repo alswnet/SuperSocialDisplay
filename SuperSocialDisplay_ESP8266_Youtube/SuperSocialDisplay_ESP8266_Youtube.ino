@@ -2,13 +2,13 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
 #include <WiFiClientSecure.h>
-#include <ArduinoJson.h> 
+#include <ArduinoJson.h>
 #include "Key.h"
 
 ESP8266WiFiMulti wifiMulti;
 
-char ssid1[] = "ALSW2";       
-char password1[] = "7210-3607";  
+char ssid1[] = "ALSW2";
+char password1[] = "7210-3607";
 char ssid2[] = "Garcia Wifi";
 char password2[] = "cirugia93";
 char ssid3[] = "ALSW";
@@ -17,10 +17,11 @@ char password3[] = "2526-4897";
 WiFiClientSecure client;
 YoutubeApi api(API_KEY, client);
 
-unsigned long api_mtbs = 5000; //mean time between api requests
-unsigned long api_lasttime;   //last time api request has been done
+unsigned long TiempoConsulta = 5000;
+unsigned long UltimaConsulta;
 int CantidadSub  = 0;
 unsigned long TiempoBajada = 0;
+unsigned long TiempoRefrescar = 0;
 long subs = 0;
 
 void setup() {
@@ -46,14 +47,22 @@ void loop() {
 
   ActualizarRed();
 
-  if (millis() - api_lasttime > api_mtbs)  {
+  if (millis() - UltimaConsulta > TiempoConsulta)  {
     if (api.getChannelStatistics(CHANNEL_ID))    {
       int CantidadSubNueva = api.channelStats.subscriberCount;
 
-      if (CantidadSubNueva > CantidadSub) {
+      if (CantidadSubNueva == CantidadSub) {
+        if (TiempoRefrescar == 0) {
+          TiempoRefrescar = millis();
+        } else if (TiempoRefrescar + 1000 * 60 * 5 < millis()) {
+          MostarNumero(CantidadSub, 4);
+          TiempoRefrescar = 0;
+        }
+      } else if (CantidadSubNueva > CantidadSub) {
         AnimarSub(CantidadSubNueva);
         CantidadSub = CantidadSubNueva;
         TiempoBajada = 0;
+        TiempoRefrescar = 0;
       } else if (CantidadSubNueva < CantidadSub) {
         if (TiempoBajada == 0) {
           Serial.println("Bajando Contador");
@@ -65,14 +74,14 @@ void loop() {
           CantidadSub =  CantidadSubNueva;
         }
       }
-      Serial.println("---------Stats---------");
-      Serial.print("Subscriber Count: ");
+      Serial.println("---------Data---------");
+      Serial.print("Cantidad Subcriptores: ");
       Serial.println(api.channelStats.subscriberCount);
-      Serial.print("View Count: ");
+      Serial.print("Cantidad Vistas: ");
       Serial.println(api.channelStats.viewCount);
       //Serial.print("Comment Count: ");
       //Serial.println(api.channelStats.commentCount);
-      Serial.print("Video Count: ");
+      Serial.print("Cantidad Video: ");
       Serial.println(api.channelStats.videoCount);
       // Probably not needed :)
       //Serial.print("hiddenSubscriberCount: ");
@@ -80,7 +89,7 @@ void loop() {
       Serial.println("------------------------");
 
     }
-    api_lasttime = millis();
+    UltimaConsulta = millis();
   }
 }
 

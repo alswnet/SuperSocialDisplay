@@ -2,20 +2,17 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
 #include <WiFiClientSecure.h>
-
-#include <ArduinoJson.h> // This Sketch doesn't technically need this, but the library does so it must be installed.
+#include <ArduinoJson.h> 
+#include "Key.h"
 
 ESP8266WiFiMulti wifiMulti;
 
-char ssid1[] = "ALSW2";       // your network SSID (name)
-char password1[] = "7210-3607";  // your network key
+char ssid1[] = "ALSW2";       
+char password1[] = "7210-3607";  
 char ssid2[] = "Garcia Wifi";
 char password2[] = "cirugia93";
 char ssid3[] = "ALSW";
 char password3[] = "2526-4897";
-#define API_KEY "AIzaSyChaTNrG24ikJ2D8hAtL2LUTPgk8U-MSyg"  // your google apps API Token
-#define CHANNEL_ID "UCS5yb75qx5GFOG-uV5JLYlQ" // makes up the url of channel
-
 
 WiFiClientSecure client;
 YoutubeApi api(API_KEY, client);
@@ -33,7 +30,6 @@ void setup() {
   MostarNumero(1234, 4);
 
   WiFi.mode(WIFI_STA);
-  //WiFi.disconnect();
   delay(100);
 
   Serial.println("Conectando con Wifi: ");
@@ -42,26 +38,13 @@ void setup() {
   wifiMulti.addAP(ssid2, password2);
   wifiMulti.addAP(ssid3, password3);
 
-
-  if (wifiMulti.run() == WL_CONNECTED) {
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
-  }
+  ActualizarRed();
 
 }
 
 void loop() {
 
-  while (wifiMulti.run() != WL_CONNECTED) {
-    Serial.println("Sin Wifi!");
-    MostarNumero(1234, 4);
-    delay(500);
-    MostarNumero(8888, 4);
-    delay(500);
-    MostarNumero(CantidadSub, 4);
-  }
+  ActualizarRed();
 
   if (millis() - api_lasttime > api_mtbs)  {
     if (api.getChannelStatistics(CHANNEL_ID))    {
@@ -100,6 +83,18 @@ void loop() {
     api_lasttime = millis();
   }
 }
+
+void ActualizarRed() {
+  while (wifiMulti.run() != WL_CONNECTED) {
+    Serial.println("Sin Wifi!");
+    MostarNumero(1234, 4);
+    delay(500);
+    MostarNumero(8888, 4);
+    delay(500);
+    MostarNumero(CantidadSub, 4);
+  }
+}
+
 
 void AnimarSub(int CantidadAnimar) {
   int tmp = 0;

@@ -16,7 +16,16 @@ Pendiente
 
 ## Lista de componentes
 
-Pendiente
+*[ESP8266 thing dev](http://alsw.net/tienda/arduino/ard)uino_compatibles/thing-dev-usb-esp8266/)
+*[4 Display gigante](http://alsw.net/tienda/pantallas/display-grande-de-7-segmentos-rojo/)
+*[4 drivers de display gigante](http://alsw.net/tienda/robotica/drivers/driver-para-display-grande-de-7-segmentos/)
+*[Convertidor de nivel](http://alsw.net/tienda/modulos/modulos-potencia/convertidor-de-nivel-logico-bidireccional/)
+*[Jumpers M/M](http://alsw.net/tienda/cables_conectores/cable-conectores/cable-prototipado-standar-7-awg-mm-30-unidades/)
+*[Jumpers H/M](http://alsw.net/tienda/cables_conectores/cable-conectores/cable-prototipado-mh-20-unidades/)
+*[Jumpers H/H](http://alsw.net/tienda/cables_conectores/cable-conectores/cable-prototipado-hh-20-unidades/)
+*[Breadboard](http://alsw.net/tienda/cables_conectores/breadboard/breadboard-mediana-color-rojo-traslucido/)
+*Fuente de PC
+
 
 ## Librerias Necesaria
 
@@ -30,3 +39,4 @@ Para utilizar este proyecto es necesario las siquientes librerias
 ## Credito
 
 [chepecarlos](chepecarlos@alswblog.org) http://github.com/chepecarlos
+[Ferbrod] (fercho20011803@gmail.com) 

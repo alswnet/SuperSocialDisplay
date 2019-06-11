@@ -10,6 +10,10 @@
   "license": "ISC",
   "dependencies": {
     "get-json": "^1.0.1",
-    "mqtt": "^2.18.8"
+    "instagram-analytics": "^2.1.1",
+    "instagram-nodejs-without-api": "^1.2.0",
+    "mqtt": "^2.18.8",
+    "node-instagram": "^4.3.0",
+    "request": "^2.88.0"
   }
 }

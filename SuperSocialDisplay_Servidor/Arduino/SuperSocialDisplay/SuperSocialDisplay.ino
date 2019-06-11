@@ -1,17 +1,18 @@
 //https://github.com/monstrenyatko/ArduinoMqtt
 #ifdef ARDUINO_ARCH_ESP32
 #include <WiFi.h>
-//Agregar MultiWifi ESP32
+#include <WiFiMulti.h>
+
+WiFiMulti wifiMulti;
 #else
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
+
+ESP8266WiFiMulti wifiMulti;
 #endif
 
 #include <MQTT.h>
 #include "Key.h"//Necesario cambiar Key_Ejemplo.h a Key.h y poner sus credenciales
-
-ESP8266WiFiMulti wifiMulti;
-
 
 char ssid1[] = "ALSW2";//Nombre de la red primaria
 char password1[] = "7210-3607";//Contraseña de la red primaria
@@ -63,12 +64,7 @@ void setup() {
 
 void connect() {
   Serial.print("checking wifi...");
-  /*
-    while (WiFi.status() != WL_CONNECTED) {
-     Serial.print(".");
-     delay(1000);
-    }
-  */
+
   Serial.print("\nconnecting...");
   while (!client.connect(ClienteIDMQTT, UsuarioMQTT, ContrasenaMQTT)) {
     Serial.print(".");
@@ -78,6 +74,7 @@ void connect() {
   Serial.println("\nconnected!");
 
   client.subscribe("/ALSW/Redes/Youtube");
+  client.subscribe("/ALSW/Redes/Instagram");
   // client.unsubscribe("/hello");
 }
 
@@ -142,10 +139,12 @@ void loop() {
   client.loop();
   delay(10);
   if (CantidadSub == 0) {
+    Serial.println("Buscando MQTT");
     MostarNumero(1234, 4);
     delay(500);
-    MostarNumero(8888, 4);
+    MostarNumero(4321, 4);
     delay(500);
+
   }
 }
 
